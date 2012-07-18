@@ -15,15 +15,19 @@ module DbDebug
 
       module ClassMethods
         def find_by_sql_with_record_counter(*args)
-          resp = nil
-          request.env['db.count'] = request.env['db.count'] + 1
-          time = Benchmark.realtime { resp = find_by_sql_without_record_counter(*args) } * 1000
-          if request.params[:db_debug]
-            Logger.log :white, "DB Query took: #{time} ms"
-            Logger.log :white, caller.delete_if{ |str| str.include?("/gems/") || str.include?("script/rails") }.join("\n")
+          if defined? request
+            resp = nil
+            request.env['db.count'] = request.env['db.count'] + 1
+            time = Benchmark.realtime { resp = find_by_sql_without_record_counter(*args) } * 1000
+            if request.params[:db_debug]
+              Logger.log :white, "DB Query took: #{time} ms"
+              Logger.log :white, caller.delete_if{ |str| str.include?("/gems/") || str.include?("script/rails") }.join("\n")
+            end
+            request.env['db.time'] = request.env['db.time'] + time
+            resp
+          else
+            find_by_sql_without_record_counter(*args)
           end
-          request.env['db.time'] = request.env['db.time'] + time
-          resp
         end
       end
 
