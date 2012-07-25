@@ -14,9 +14,10 @@ class DbDebug
     def self.log color, str
       code = COLOR_MAP[color]
       str = "\033[0;#{code}m#{str}\033[0;#37m"  
-      Rails.logger.debug str
-      if defined? IRB
+      if self.private_methods.include? 'irb_binding'
         puts str
+      else
+        Rails.logger.debug str
       end
     end
     

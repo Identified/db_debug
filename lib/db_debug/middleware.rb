@@ -5,7 +5,9 @@ class DbDebug
     end
 
     def call(env)
-      db_debug = env["QUERY_STRING"].gsub!(/&db_debug/, "")
+      str = env["QUERY_STRING"].gsub(/&db_debug/, "")
+      db_debug = env["QUERY_STRING"] != str
+      env["QUERY_STRING"] = str if db_debug 
 
       
       DbDebug.trace verbose: db_debug.present?  do
