@@ -1,5 +1,3 @@
-require 'active_record/connection_adapters/postgresql_adapter'
-
 class DbDebug
   module ActiveRecord
     module ConnectionAdapters
@@ -38,5 +36,3 @@ class DbDebug
     end
   end
 end
-
-ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:include, DbDebug::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) 

@@ -13,7 +13,11 @@ class DbDebug
     
     def self.log color, str
       code = COLOR_MAP[color]
-      Rails.logger.debug "\033[0;#{code}m#{str}\033[0;#37m"      
+      str = "\033[0;#{code}m#{str}\033[0;#37m"  
+      Rails.logger.debug str
+      if defined? IRB
+        puts str
+      end
     end
     
     def self.determine_color count, time

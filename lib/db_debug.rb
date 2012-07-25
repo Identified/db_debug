@@ -11,7 +11,7 @@ class DbDebug
     DbDebug.enabled   = true
     DbDebug.count     = opts[:count] || 0
     DbDebug.time      = opts[:time]  || 0
-    DbDebug.verbose   = opts[:verbose] || false
+    DbDebug.verbose   = opts[:verbose].nil? ? true : opts[:verbose]
     
     res = yield
     
