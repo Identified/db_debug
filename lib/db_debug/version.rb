@@ -1,3 +1,3 @@
-module DbDebug
-  VERSION = "0.0.3"
+class DbDebug
+  VERSION = "0.0.4"
 end

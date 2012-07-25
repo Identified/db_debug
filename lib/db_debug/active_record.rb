@@ -1,40 +1,42 @@
-module DbDebug
+require 'active_record/connection_adapters/postgresql_adapter'
+
+class DbDebug
   module ActiveRecord
-    module Base
-      class << self
-        def included(klass)
-          klass.extend ClassMethods
+    module ConnectionAdapters
+      module PostgreSQLAdapter
+        def self.included(klass)
           klass.class_eval do
-            class << self
-              alias_method_chain :find_by_sql, :record_counter
-            end
+            alias_method_chain :exec_query, :db_debug
           end
-          include InstanceMethods
         end
-      end
-
-      module ClassMethods
-        def find_by_sql_with_record_counter(*args)
-          if defined? request
-            resp = nil
-            request.env['db.count'] = request.env['db.count'] + 1
-            time = Benchmark.realtime { resp = find_by_sql_without_record_counter(*args) } * 1000
-            if request.params[:db_debug]
-              Logger.log :white, "DB Query took: #{time} ms"
+        
+        def exec_query_with_db_debug(sql, name = 'SQL', binds = [])
+          if DbDebug.enabled            
+            DbDebug.count += 1
+            start = Time.now
+            res = exec_query_without_db_debug(sql, name, binds)
+            time = (Time.now - start) * 1000
+            
+            if DbDebug.verbose
+              Logger.log :white, ""
+              Logger.log :red, "DB CALL " + "="*72
+              Logger.log :green, "SQL:     #{sql.split("\n").join("").strip}"
+              Logger.log :green, "BINDS:   #{binds}" if binds.present?
+              Logger.log :white, "TIME:    #{time} ms"
               Logger.log :white, caller.delete_if{ |str| str.include?("/gems/") || str.include?("script/rails") }.join("\n")
+              Logger.log :red, "="*80
+              Logger.log :white, ""
+              
             end
-            request.env['db.time'] = request.env['db.time'] + time
-            resp
+            DbDebug.time += time
+            res
           else
-            find_by_sql_without_record_counter(*args)
+            exec_query_without_db_debug(sql, name, binds)
           end
         end
-      end
-
-      module InstanceMethods
       end
     end
   end
 end
 
-ActiveRecord::Base.send(:include, DbDebug::ActiveRecord::Base)
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:include, DbDebug::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) 

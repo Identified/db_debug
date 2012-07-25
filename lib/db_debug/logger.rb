@@ -1,4 +1,4 @@
-module DbDebug
+class DbDebug
   module Logger
     COLOR_MAP = {
       :black => 30,
@@ -14,6 +14,16 @@ module DbDebug
     def self.log color, str
       code = COLOR_MAP[color]
       Rails.logger.debug "\033[0;#{code}m#{str}\033[0;#37m"      
+    end
+    
+    def self.determine_color count, time
+      if count <= 10 || time < 50.0
+        :green
+      elsif count <= 20 || time < 100.0
+        :yellow
+      else
+        :red
+      end
     end
   end
 end
